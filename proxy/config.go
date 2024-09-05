@@ -8,16 +8,16 @@ import (
 )
 
 type Config struct {
-	Name                      string        `json:"-"`
-	Id                        uint16        `json:"-"`
-	Log                       Log           `json:"log"`
-	Cluster                   []ClusterNode `json:"cluster"`
-	Proxy                     Proxy         `json:"proxy"`
-	Api                       api.ApiConfig `json:"api"`
-	Upstream                  []Upstream    `json:"upstream"`
-	UpstreamCheckInterval     string        `json:"upstreamCheckInterval"`
-	UpstreamCoinBaseEncrypted string        `json:"upstreamCoinBaseEncrypted"`
-	UpstreamCoinBase          string        `json:"-"`
+	Name                  string        `json:"-"`
+	Id                    uint16        `json:"-"`
+	Log                   Log           `json:"log"`
+	Cluster               []ClusterNode `json:"cluster"`
+	Proxy                 Proxy         `json:"proxy"`
+	Api                   api.ApiConfig `json:"api"`
+	Upstream              []Upstream    `json:"upstream"`
+	UpstreamCheckInterval string        `json:"upstreamCheckInterval"`
+	//UpstreamCoinBaseEncrypted string        `json:"upstreamCoinBaseEncrypted"`
+	UpstreamCoinBase string `json:"upstreamCoinBase"`
 
 	Threads int `json:"threads"`
 

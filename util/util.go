@@ -3,14 +3,17 @@ package util
 import (
 	"bytes"
 	"encoding/hex"
+	"math/big"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/PowPool/btcpool/bech32m"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/mutalisk999/bitcoin-lib/src/base58"
 	"github.com/mutalisk999/bitcoin-lib/src/bigint"
 	"github.com/mutalisk999/bitcoin-lib/src/utility"
-	"math/big"
-	"regexp"
-	"strconv"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -34,6 +37,16 @@ var zeroHash = regexp.MustCompile("^0?x?0+$")
 //}
 
 func IsValidBTCAddress(address string) bool {
+	// Native SegWit (Bech32)格式  P2WPKH
+	if strings.HasPrefix(strings.ToLower(address), "bc1") || strings.HasPrefix(strings.ToLower(address), "tb1") {
+		_, _, _, err := bech32m.Decode(address)
+		if err == nil {
+			return true
+		}
+		_, _, err = bech32m.SegwitAddrDecode(address[0:2], address)
+		return err == nil
+	}
+
 	addrWithCheck, err := base58.Decode(address)
 	if err != nil {
 		return false
@@ -58,7 +71,11 @@ func MakeTimestamp() int64 {
 }
 
 func GetTargetHex(diff int64) string {
+	if diff == 0 {
+		return ""
+	}
 	difficulty := big.NewInt(diff)
+
 	diff1 := new(big.Int).Div(pow256, difficulty)
 	return string(hexutil.Encode(diff1.Bytes()))
 }

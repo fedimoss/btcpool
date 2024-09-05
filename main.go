@@ -1,3 +1,4 @@
+//go:build go1.9
 // +build go1.9
 
 package main
@@ -14,6 +15,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"syscall"
+
 	//"github.com/yvasiyarov/gorelic"
 
 	"github.com/PowPool/btcpool/api"
@@ -105,26 +107,27 @@ func readSecurityPass() ([]byte, error) {
 	return SecurityPass, nil
 }
 
-func decryptPoolConfigure(cfg *proxy.Config, passBytes []byte) error {
-	b, err := Ae64Decode(cfg.UpstreamCoinBaseEncrypted, passBytes)
-	if err != nil {
-		return err
-	}
-	cfg.UpstreamCoinBase = string(b)
-	// check address
-	if !IsValidBTCAddress(cfg.UpstreamCoinBase) {
-		return errors.New("decryptPoolConfigure: IsValidBTCAddress")
-	}
+/*
+	func decryptPoolConfigure(cfg *proxy.Config, passBytes []byte) error {
+		b, err := Ae64Decode(cfg.UpstreamCoinBaseEncrypted, passBytes)
+		if err != nil {
+			return err
+		}
+		cfg.UpstreamCoinBase = string(b)
+		// check address
+		if !IsValidBTCAddress(cfg.UpstreamCoinBase) {
+			return errors.New("decryptPoolConfigure: IsValidBTCAddress")
+		}
 
-	b, err = Ae64Decode(cfg.Redis.PasswordEncrypted, passBytes)
-	if err != nil {
-		return err
+		b, err = Ae64Decode(cfg.Redis.PasswordEncrypted, passBytes)
+		if err != nil {
+			return err
+		}
+		cfg.Redis.Password = string(b)
+
+		return nil
 	}
-	cfg.Redis.Password = string(b)
-
-	return nil
-}
-
+*/
 func getDeviceIPs() (map[string]struct{}, error) {
 	ipAddrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -200,15 +203,17 @@ func main() {
 
 	//startNewrelic()
 
-	secPassBytes, err := readSecurityPass()
-	if err != nil {
-		Error.Fatal("Read Security Password error: ", err.Error())
-	}
+	/*
+		secPassBytes, err := readSecurityPass()
+		if err != nil {
+			Error.Fatal("Read Security Password error: ", err.Error())
+		}
 
-	err = decryptPoolConfigure(&cfg, secPassBytes)
-	if err != nil {
-		Error.Fatal("Decrypt Pool Configure error: ", err.Error())
-	}
+		err = decryptPoolConfigure(&cfg, secPassBytes)
+		if err != nil {
+			Error.Fatal("Decrypt Pool Configure error: ", err.Error())
+		}
+	*/
 
 	backend = storage.NewRedisClient(&cfg.Redis, cfg.Coin)
 	pong, err := backend.Check()

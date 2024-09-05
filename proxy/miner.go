@@ -3,15 +3,16 @@ package proxy
 import (
 	"bytes"
 	"encoding/hex"
+	"io"
+	"math/big"
+	"strconv"
+
 	. "github.com/PowPool/btcpool/util"
 	"github.com/mutalisk999/bitcoin-lib/src/blob"
 	"github.com/mutalisk999/bitcoin-lib/src/block"
 	"github.com/mutalisk999/bitcoin-lib/src/transaction"
 	"github.com/mutalisk999/bitcoin-lib/src/utility"
 	"github.com/mutalisk999/txid_merkle_tree"
-	"io"
-	"math/big"
-	"strconv"
 )
 
 func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int64, t *BlockTemplate, params []string) (bool, bool) {
@@ -238,6 +239,9 @@ func DoubleSha256HashVerify(oBlock *Block) bool {
 	Debug.Printf("Target Hex: %064s", resHex)
 
 	hashDiff := TargetHexToDiff(resHex)
+
+	Debug.Printf("hashDiff: %v", hashDiff)
+	Debug.Printf("oBlock.difficulty: %v", oBlock.difficulty)
 
 	if hashDiff.Cmp(oBlock.difficulty) > 0 {
 		return true

@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/mutalisk999/bitcoin-lib/src/transaction"
 	"io"
 	"testing"
+
+	"github.com/mutalisk999/bitcoin-lib/src/transaction"
 )
 
 func TestGetCoinBaseScriptHex1(t *testing.T) {
@@ -86,4 +87,9 @@ func TestRecoverToRawTransaction(t *testing.T) {
 		fmt.Println("vout value", trx.Vout[i].Value)
 		fmt.Println("vout scriptpubkey:", trx.Vout[i].ScriptPubKey)
 	}
+}
+
+func TestGetCoinBaseScriptByAddress(t *testing.T) {
+	scriptHex, _ := GetCoinBaseScriptByAddress("bc1qkyz0zhxe6aktl35uzp6rwkr2aht4wrnpvlvr03")
+	fmt.Println("coinbaser script:", scriptHex)
 }

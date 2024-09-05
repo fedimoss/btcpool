@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PowPool/btcpool/bitcoin"
-	"github.com/mutalisk999/bitcoin-lib/src/bigint"
 	"io"
 	"net"
 	"time"
+
+	"github.com/PowPool/btcpool/bitcoin"
+	"github.com/mutalisk999/bitcoin-lib/src/bigint"
 
 	. "github.com/PowPool/btcpool/util"
 )
@@ -173,6 +174,22 @@ func (cs *Session) handleTCPMessage(s *ProxyServer, req *StratumReq) error {
 
 	case "mining.extranonce.subscribe":
 		return cs.sendTCPResult(req.Id, true)
+
+	case "mining.configure":
+		var params []interface{}
+		err := json.Unmarshal(req.Params, &params)
+		if err != nil {
+			return cs.sendTCPError(req.Id, &ErrorReply{Code: 27, Message: "Illegal params"})
+		}
+		if len(params) < 2 {
+			return cs.sendTCPError(req.Id, &ErrorReply{Code: 27, Message: "Too few params"})
+		}
+
+		reply, errReply := s.handleConfigureRPC(cs, params)
+		if errReply != nil {
+			return cs.sendTCPError(req.Id, errReply)
+		}
+		return cs.sendTCPResult(req.Id, reply)
 
 	default:
 		errReply := s.handleUnknownRPC(cs, req.Method)

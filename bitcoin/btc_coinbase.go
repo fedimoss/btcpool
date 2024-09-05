@@ -4,6 +4,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"io"
+	"strings"
+	"time"
+
+	"github.com/PowPool/btcpool/bech32m"
 	"github.com/mutalisk999/bitcoin-lib/src/base58"
 	"github.com/mutalisk999/bitcoin-lib/src/keyid"
 	"github.com/mutalisk999/bitcoin-lib/src/pubkey"
@@ -11,8 +16,6 @@ import (
 	"github.com/mutalisk999/bitcoin-lib/src/serialize"
 	"github.com/mutalisk999/bitcoin-lib/src/transaction"
 	"github.com/mutalisk999/bitcoin-lib/src/utility"
-	"io"
-	"time"
 )
 
 func GetCoinBaseScriptByPubKey(pubKeyHex string) ([]byte, error) {
@@ -44,6 +47,48 @@ func GetCoinBaseScriptByPubKey(pubKeyHex string) ([]byte, error) {
 }
 
 func GetCoinBaseScriptByAddress(address string) ([]byte, error) {
+	if strings.HasPrefix(strings.ToLower(address), "bc1") || strings.HasPrefix(strings.ToLower(address), "tb1") {
+		// 首先尝试使用 SegWitAddressDecode 来解码地址
+		_, witnessProgram, err := bech32m.SegwitAddrDecode(address[0:2], address)
+		if err == nil {
+			// 如果成功，构建对应的脚本
+			var script bytes.Buffer
+			script.WriteByte(0x00)                      // OP_0
+			script.WriteByte(byte(len(witnessProgram))) // push length
+			script.Write(witnessProgram)                // push data
+			return script.Bytes(), nil
+		}
+
+		// 如果 SegWit 解码失败，尝试使用通用的 Decode 函数
+		_, data, _, err := bech32m.Decode(address)
+		if err == nil {
+			// 检查数据长度以确定是 P2WPKH 还是 P2WSH
+			// P2WPKH 的数据长度为 20 字节 (1 byte version + 20 bytes hash)
+			// P2WSH 的数据长度为 32 字节 (1 byte version + 32 bytes hash)
+			if len(data) == 20 || len(data) == 32 {
+				var script bytes.Buffer
+				// 写入 OP_0
+				script.WriteByte(0x00)
+				// 写入数据长度
+				if len(data) == 20 {
+					script.WriteByte(0x14) // P2WPKH 的数据长度为 20 字节
+				} else {
+					script.WriteByte(0x20) // P2WSH 的数据长度为 32 字节
+				}
+
+				// 写入 Hash
+				script.Write(data[1:]) // 跳过版本字节
+
+				return script.Bytes(), nil
+			}
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
 	addrWithCheck, err := base58.Decode(address)
 	if err != nil {
 		return nil, errors.New("invalid address")

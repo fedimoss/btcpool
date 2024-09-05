@@ -18,3 +18,11 @@ func TestHash256StratumFormat(t *testing.T) {
 	txIdStratumHex, _ := Hash256StratumFormat(txIdHex)
 	fmt.Println("txIdStratumHex:", txIdStratumHex)
 }
+
+func TestIsValidBTCAddress(t *testing.T) {
+	//bc1qkyz0zhxe6aktl35uzp6rwkr2aht4wrnpvlvr03
+	//bc1pzf9qwcjr0c4j0p97yrt2mmqehsarfkc98czxsqauwflcv95h37rqn0tfwz
+	address := "bc1pzf9qwcjr0c4j0p97yrt2mmqehsarfkc98czxsqauwflcv95h37rqn0tfwz"
+	ok := IsValidBTCAddress(address)
+	fmt.Println("IsValidBTCAddress:", ok)
+}

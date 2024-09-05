@@ -1,6 +1,6 @@
 {
 	"threads": 4,
-	"coin": "btc",
+	"coin": "fb",
 
 	"log": {
 		"logSetLevel": 10

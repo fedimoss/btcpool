@@ -3,11 +3,12 @@ package proxy
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/PowPool/btcpool/bitcoin"
-	"github.com/mutalisk999/bitcoin-lib/src/utility"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/PowPool/btcpool/bitcoin"
+	"github.com/mutalisk999/bitcoin-lib/src/utility"
 
 	//"github.com/PowPool/btcpool/rpc"
 	. "github.com/PowPool/btcpool/util"
@@ -129,4 +130,33 @@ func (s *ProxyServer) handleUnknownRPC(cs *Session, m string) *ErrorReply {
 	Error.Printf("Unknown request method %s from %s", m, cs.ip)
 	s.policy.ApplyMalformedPolicy(cs.ip)
 	return &ErrorReply{Code: -3, Message: "Method not found"}
+}
+
+// Stratum
+func (s *ProxyServer) handleConfigureRPC(cs *Session, params []interface{}) (interface{}, *ErrorReply) {
+	// request:
+	//		{"id":3,"method":"mining.configure","params":[["version-rolling"],{"version-rolling.mask":"1fffe000","version-rolling.min-bit-count":2}]}
+	// response:
+	//		{"id":3,"result":{"version-rolling":true,"version-rolling.mask":"1fffe000"},"error":null}
+	//		{"id":null,"method":"mining.set_version_mask","params":["1fffe000"]}
+	versionMask := uint32(0)
+	if options, ok := params[1].(map[string]interface{}); ok {
+		if obj, ok := options["version-rolling.mask"]; ok {
+			if versionMaskStr, ok := obj.(string); ok {
+				versionMask64, err := strconv.ParseUint(versionMaskStr, 16, 32)
+				if err == nil {
+					versionMask = uint32(versionMask64)
+				}
+			}
+		}
+	}
+	if versionMask != 0 {
+		// 这里响应的是虚假的版本掩码。在连接服务器后将通过 mining.set_version_mask
+		// 更新为真实的版本掩码。
+		result := map[string]interface{}{
+			"version-rolling":      true,
+			"version-rolling.mask": fmt.Sprintf("%08x", versionMask)}
+		return result, nil
+	}
+	return nil, nil
 }

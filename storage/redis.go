@@ -13,11 +13,12 @@ import (
 )
 
 type Config struct {
-	Endpoint          string `json:"endpoint"`
-	PasswordEncrypted string `json:"passwordEncrypted"`
-	Password          string `json:"-"`
-	Database          int64  `json:"database"`
-	PoolSize          int    `json:"poolSize"`
+	Endpoint string `json:"endpoint"`
+	//PasswordEncrypted string `json:"passwordEncrypted"`
+	Password string `json:"password"`
+
+	Database int64 `json:"database"`
+	PoolSize int   `json:"poolSize"`
 }
 
 type RedisClient struct {
