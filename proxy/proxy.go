@@ -60,6 +60,8 @@ type Session struct {
 	extraNonce1 string
 	// authorized
 	isAuth bool
+
+	versionMask uint32
 }
 
 func NewProxy(cfg *Config, backend *storage.RedisClient) *ProxyServer {
