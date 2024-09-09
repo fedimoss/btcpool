@@ -343,7 +343,9 @@ func (s *ProxyServer) writeError(w http.ResponseWriter, status int, msg string) 
 func (s *ProxyServer) currentBlockTemplate() *BlockTemplate {
 	t := s.blockTemplate.Load()
 	if t != nil {
-		return t.(*BlockTemplate)
+		bt := t.(*BlockTemplate)
+		//bt.Version = bt.Version | defaultVersionMask
+		return bt
 	} else {
 		return nil
 	}

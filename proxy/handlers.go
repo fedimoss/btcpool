@@ -26,8 +26,10 @@ func (s *ProxyServer) handleSubscribeRPC(cs *Session) (interface{}, *ErrorReply)
 	s.registerSession(cs)
 	Info.Printf("Stratum miner connected from %v", cs.ip)
 
-	cs.sid = hex.EncodeToString(utility.Sha256(
-		[]byte(strings.Join([]string{cs.ip, strconv.Itoa(int(s.config.Id)), strconv.Itoa(int(cs.tag))}, ","))))[0:32]
+	//if cs.sid == "" {
+	cs.sid = hex.EncodeToString(utility.Sha256([]byte(strings.Join([]string{cs.ip, strconv.Itoa(int(s.config.Id)), strconv.Itoa(int(cs.tag))}, ","))))[0:32]
+	//}
+
 	cs.extraNonce1 = fmt.Sprintf("%08x", uint32(s.config.Id)<<16|uint32(cs.tag))
 
 	setDiff := []string{"mining.set_difficulty", cs.sid}
@@ -77,7 +79,7 @@ func (s *ProxyServer) handleTCPSubmitRPC(cs *Session, params []string) (bool, *E
 }
 
 func (s *ProxyServer) handleSubmitRPC(cs *Session, params []string) (bool, *ErrorReply) {
-	if len(params) != 5 {
+	if len(params) < 5 {
 		s.policy.ApplyMalformedPolicy(cs.ip)
 		Error.Printf("Malformed params from %s@%s %v", cs.login, cs.ip, params)
 		return false, &ErrorReply{Code: -1, Message: "Invalid params"}
@@ -139,23 +141,26 @@ func (s *ProxyServer) handleConfigureRPC(cs *Session, params []interface{}) (int
 	// response:
 	//		{"id":3,"result":{"version-rolling":true,"version-rolling.mask":"1fffe000"},"error":null}
 	//		{"id":null,"method":"mining.set_version_mask","params":["1fffe000"]}
-	if options, ok := params[1].(map[string]interface{}); ok {
-		if obj, ok := options["version-rolling.mask"]; ok {
-			if versionMaskStr, ok := obj.(string); ok {
-				versionMask64, err := strconv.ParseUint(versionMaskStr, 16, 32)
-				if err == nil {
-					cs.versionMask = uint32(versionMask64)
+	/*
+		if options, ok := params[1].(map[string]interface{}); ok {
+			if obj, ok := options["version-rolling.mask"]; ok {
+				if versionMaskStr, ok := obj.(string); ok {
+					versionMask64, err := strconv.ParseUint(versionMaskStr, 16, 32)
+					if err == nil {
+						cs.versionMask = uint32(versionMask64)
+					}
 				}
 			}
 		}
-	}
-	if cs.versionMask != 0 {
-		// 这里响应的是虚假的版本掩码。在连接服务器后将通过 mining.set_version_mask
-		// 更新为真实的版本掩码。
-		result := map[string]interface{}{
-			"version-rolling":      true,
-			"version-rolling.mask": fmt.Sprintf("%08x", cs.versionMask)}
-		return result, nil
-	}
-	return nil, nil
+	*/
+
+	// 这里响应的是虚假的版本掩码。在连接服务器后将通过 mining.set_version_mask
+	// 更新为真实的版本掩码。
+	result := map[string]interface{}{
+		"version-rolling": true,
+		//"version-rolling.mask": fmt.Sprintf("%08x", cs.versionMask)}
+		"version-rolling.mask": "1fffe000"}
+	return result, nil
+	//}
+	//return nil, nil
 }

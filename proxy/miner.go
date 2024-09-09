@@ -20,6 +20,21 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 	eNonce2Hex := params[2]
 	nTimeHex := params[3]
 	nonceHex := params[4]
+	var versionBits uint32 = 0
+
+	if len(params) > 5 {
+		var err error
+		versionBits64, err := strconv.ParseUint(params[5], 16, 32)
+		if err != nil {
+			return false, false
+		}
+		versionBits = uint32(versionBits64)
+
+		// 确保 versionBits 只在 version_mask 允许的位上设置为 1
+		if versionBits & ^Bip320Mask != 0 {
+			return false, false
+		}
+	}
 
 	h, ok := t.BlockTplJobMap[tplJobId]
 	if !ok {
@@ -64,6 +79,12 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 		sNonce:       nonceHex,
 	}
 
+	// 根据矿工提交的version和versionmask,更新nVersion
+	if versionBits != 0 {
+		//actualVersion := (t.Version &^ Bip320Mask) | (versionBits & ^Bip320Mask)
+		actualVersion := (t.Version & Bip320Mask) | (versionBits &^ Bip320Mask)
+		block.nVersion = actualVersion
+	}
 	if !DoubleSha256HashVerify(&share) {
 		ms := MakeTimestamp()
 		ts := ms / 1000
