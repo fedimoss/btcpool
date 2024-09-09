@@ -51,6 +51,14 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 		return false, false
 	}
 
+	actualVersion := t.Version
+	// 根据矿工提交的version和versionmask,更新nVersion
+	if versionBits != 0 {
+		//actualVersion := (t.Version &^ Bip320Mask) | (versionBits & ^Bip320Mask)
+		actualVersion = (t.Version & Bip320Mask) | (versionBits &^ Bip320Mask)
+		//block.nVersion = actualVersion
+	}
+
 	share := Block{
 		difficulty:   big.NewInt(shareDiff),
 		coinBase1:    h.CoinBase1,
@@ -58,7 +66,7 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 		extraNonce1:  eNonce1,
 		extraNonce2:  eNonce2Hex,
 		merkleBranch: h.MerkleBranch,
-		nVersion:     t.Version,
+		nVersion:     actualVersion,
 		prevHash:     t.PrevHash,
 		sTime:        nTimeHex,
 		nBits:        t.NBits,
@@ -72,19 +80,13 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 		extraNonce1:  eNonce1,
 		extraNonce2:  eNonce2Hex,
 		merkleBranch: h.MerkleBranch,
-		nVersion:     t.Version,
+		nVersion:     actualVersion,
 		prevHash:     t.PrevHash,
 		sTime:        nTimeHex,
 		nBits:        t.NBits,
 		sNonce:       nonceHex,
 	}
 
-	// 根据矿工提交的version和versionmask,更新nVersion
-	if versionBits != 0 {
-		//actualVersion := (t.Version &^ Bip320Mask) | (versionBits & ^Bip320Mask)
-		actualVersion := (t.Version & Bip320Mask) | (versionBits &^ Bip320Mask)
-		block.nVersion = actualVersion
-	}
 	if !DoubleSha256HashVerify(&share) {
 		ms := MakeTimestamp()
 		ts := ms / 1000
@@ -250,13 +252,14 @@ func DoubleSha256HashVerify(oBlock *Block) bool {
 	Debug.Printf("blockHeader.Nonce: %d", blockHeader.Nonce)
 
 	Debug.Printf("blockHeader Hex: %s", hex.EncodeToString(bytesBuf.Bytes()))
+	Debug.Printf("oBlock.difficulty: %v", oBlock.difficulty)
 
 	// calc block header hash (double sha256)
 	bytesRes := utility.Sha256(utility.Sha256(bytesBuf.Bytes()))
 	var res blob.Baseblob
 	res.SetData(bytesRes)
 	resHex := res.GetHex()
-
+	Debug.Printf("Target resHex:%s", resHex)
 	Debug.Printf("Target Hex: %064s", resHex)
 
 	hashDiff := TargetHexToDiff(resHex)

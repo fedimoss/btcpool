@@ -3,8 +3,9 @@ package proxy
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/mutalisk999/bitcoin-lib/src/utility"
 	"testing"
+
+	"github.com/mutalisk999/bitcoin-lib/src/utility"
 )
 
 func TestDoubleSha256Hash(t *testing.T) {

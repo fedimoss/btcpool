@@ -225,7 +225,7 @@ func (s *ProxyServer) UpdateAllSessionDiff() {
 		if k.shareCountInv > s.config.Proxy.DiffAdjust.ExpectShareCount*2 {
 			// difficulty up
 			diff := TargetHexToDiff(k.target).Int64()
-			diff = int64(float64(diff) * 1.2)
+			diff = int64(float64(diff) * 2)
 			k.targetNextJob = GetTargetHex(diff)
 			Info.Printf("Address: [%s], Name: : [%s], Target From [%s] Up to [%s]", k.login, k.id, k.target, k.targetNextJob)
 		} else if k.shareCountInv < s.config.Proxy.DiffAdjust.ExpectShareCount/2 {
