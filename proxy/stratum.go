@@ -157,12 +157,11 @@ func (cs *Session) handleTCPMessage(s *ProxyServer, req *StratumReq) error {
 		}
 
 		// Send mining.set_version_mask after the subscribe response
-		if cs.versionMask != 0 {
-			versionMask := []string{Bip320MaskStr}
-			message := JSONPushMessage{Id: nil, Method: "mining.set_version_mask", Params: versionMask}
-			m, _ := json.Marshal(&message)
-			Debug.Printf("mining.set_version_mask, message: %s", string(m))
-			err = cs.enc.Encode(&message)
+		err = cs.setVersionMask()
+
+		if err != nil {
+			Error.Printf("set versionMask error to %v@%v: %v", cs.login, cs.ip, err)
+			s.removeSession(cs)
 		}
 
 		return err
@@ -258,6 +257,21 @@ func (cs *Session) setDifficulty() error {
 	m, _ := json.Marshal(&message)
 	Debug.Printf("diff:%v,genesisWork:%v,mining.set_difficulty:%s", diff, genesisWork, string(m))
 	return cs.enc.Encode(&message)
+}
+
+func (cs *Session) setVersionMask() error {
+	cs.Lock()
+	defer cs.Unlock()
+
+	if cs.versionMask == 0 {
+		return nil
+	}
+	versionMask := []string{Bip320MaskStr}
+	message := JSONPushMessage{Id: nil, Method: "mining.set_version_mask", Params: versionMask}
+	m, _ := json.Marshal(&message)
+	Debug.Printf("mining.set_version_mask, message: %s", string(m))
+	return cs.enc.Encode(&message)
+
 }
 
 func (cs *Session) pushNewJob(params []interface{}) error {

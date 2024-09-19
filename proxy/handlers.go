@@ -159,7 +159,7 @@ func (s *ProxyServer) handleConfigureRPC(cs *Session, params []interface{}) (int
 	result := map[string]interface{}{
 		"version-rolling": true,
 		//"version-rolling.mask": fmt.Sprintf("%08x", cs.versionMask)}
-		"version-rolling.mask": "1fffe000"}
+		"version-rolling.mask": Bip320MaskStr}
 	return result, nil
 	//}
 	//return nil, nil
