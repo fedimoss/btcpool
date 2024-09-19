@@ -153,3 +153,12 @@ func Hash256StratumFormat(hexStr string) (string, error) {
 	b2 = append(b2, b.GetData()...)
 	return hex.EncodeToString(b2), nil
 }
+
+func HexStringToUint32(hexStr string) (uint32, error) {
+	// 直接解析字符串并转换为 uint32
+	value, err := strconv.ParseUint(hexStr, 16, 32)
+	if err != nil {
+		return 0, err
+	}
+	return uint32(value), nil
+}

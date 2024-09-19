@@ -120,3 +120,26 @@ func bitsToDiff(bits string) float64 {
 	difficultyFloat, _ := difficulty.Float64()
 	return difficultyFloat
 }
+
+// calculateNVersion computes the nVersion based on initialVersion, versionMask, and versionBits.
+func calculateNVersion(initialVersion, versionMask, versionBits uint32) uint32 {
+	//return (initialVersion & ^versionMask) | (versionBits & versionMask)
+	return (initialVersion & ^versionMask) | (versionBits & versionMask)
+}
+
+func TestCalculateNVersion(t *testing.T) {
+	// Test data
+	initialVersion := uint32(0x20000004)
+	versionMask := uint32(0x1fffe000)
+	versionBits := uint32(0x1fff0000)
+	expectedNVersion := uint32(0x3fffe004)
+
+	// Call the function
+	nVersion := calculateNVersion(initialVersion, versionMask, versionBits)
+	fmt.Println(nVersion)
+
+	// Check if the result matches the expected value
+	if nVersion != expectedNVersion {
+		t.Errorf("Expected nVersion to be 0x%x, but got 0x%x", expectedNVersion, nVersion)
+	}
+}

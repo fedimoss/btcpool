@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	MaxReqSize        = 1024
-	Bip320Mask uint32 = 0x1fffe000
+	MaxReqSize           = 1024
+	Bip320MaskStr string = "1fffe000"
+	Bip320Mask    uint32 = 0x1fffe000
 )
 
 func (s *ProxyServer) ListenTCP() {
@@ -157,7 +158,7 @@ func (cs *Session) handleTCPMessage(s *ProxyServer, req *StratumReq) error {
 
 		// Send mining.set_version_mask after the subscribe response
 		if cs.versionMask != 0 {
-			versionMask := []string{"1fffe000"}
+			versionMask := []string{Bip320MaskStr}
 			message := JSONPushMessage{Id: nil, Method: "mining.set_version_mask", Params: versionMask}
 			m, _ := json.Marshal(&message)
 			Debug.Printf("mining.set_version_mask, message: %s", string(m))
@@ -324,7 +325,7 @@ func (s *ProxyServer) broadcastNewJobs() {
 		return
 	}
 
-	//t.Version = t.Version | 0x1fffe000
+	//t.Version = t.Version | Bip320Mask
 
 	// https://stackoverflow.com/questions/44119793/why-does-json-encoding-an-empty-array-in-code-return-null
 	// var MerkleBranchStratum []string

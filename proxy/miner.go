@@ -24,12 +24,10 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 
 	if len(params) > 5 {
 		var err error
-		versionBits64, err := strconv.ParseUint(params[5], 16, 32)
+		versionBits, err = HexStringToUint32(params[5])
 		if err != nil {
 			return false, false
 		}
-		versionBits = uint32(versionBits64)
-
 		// 确保 versionBits 只在 version_mask 允许的位上设置为 1
 		if versionBits & ^Bip320Mask != 0 {
 			return false, false
@@ -51,14 +49,13 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 		return false, false
 	}
 
-	actualVersion := t.Version
-	// 根据矿工提交的version和versionmask,更新nVersion
+	nVersion := t.Version
+	// 根据矿工提交的versionBits,原始的t.Version,versionMask Bip320Mask,重新计算nVersion
 	if versionBits != 0 {
-		//actualVersion := (t.Version &^ Bip320Mask) | (versionBits & ^Bip320Mask)
-		actualVersion = (t.Version & Bip320Mask) | (versionBits &^ Bip320Mask)
-		//block.nVersion = actualVersion
+		//actualVersion = (t.Version & Bip320Mask) | (versionBits & ^Bip320Mask)
+		nVersion = (t.Version & ^Bip320Mask) | (versionBits & Bip320Mask)
 	}
-
+	// share 和 block 都使用 nVersion
 	share := Block{
 		difficulty:   big.NewInt(shareDiff),
 		coinBase1:    h.CoinBase1,
@@ -66,7 +63,7 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 		extraNonce1:  eNonce1,
 		extraNonce2:  eNonce2Hex,
 		merkleBranch: h.MerkleBranch,
-		nVersion:     actualVersion,
+		nVersion:     nVersion,
 		prevHash:     t.PrevHash,
 		sTime:        nTimeHex,
 		nBits:        t.NBits,
@@ -80,7 +77,7 @@ func (s *ProxyServer) processShare(login, id, eNonce1, ip string, shareDiff int6
 		extraNonce1:  eNonce1,
 		extraNonce2:  eNonce2Hex,
 		merkleBranch: h.MerkleBranch,
-		nVersion:     actualVersion,
+		nVersion:     nVersion,
 		prevHash:     t.PrevHash,
 		sTime:        nTimeHex,
 		nBits:        t.NBits,
@@ -259,9 +256,7 @@ func DoubleSha256HashVerify(oBlock *Block) bool {
 	var res blob.Baseblob
 	res.SetData(bytesRes)
 	resHex := res.GetHex()
-	Debug.Printf("Target resHex:%s", resHex)
 	Debug.Printf("Target Hex: %064s", resHex)
-
 	hashDiff := TargetHexToDiff(resHex)
 
 	Debug.Printf("hashDiff: %v", hashDiff)
