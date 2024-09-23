@@ -249,7 +249,7 @@ func DoubleSha256HashVerify(oBlock *Block) bool {
 	Debug.Printf("blockHeader.Nonce: %d", blockHeader.Nonce)
 
 	Debug.Printf("blockHeader Hex: %s", hex.EncodeToString(bytesBuf.Bytes()))
-	Debug.Printf("oBlock.difficulty: %v", oBlock.difficulty)
+	//Debug.Printf("oBlock.difficulty: %v", oBlock.difficulty)
 
 	// calc block header hash (double sha256)
 	bytesRes := utility.Sha256(utility.Sha256(bytesBuf.Bytes()))
